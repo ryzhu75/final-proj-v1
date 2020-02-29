@@ -7,3 +7,15 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+
+Repo URL: https://github.com/ryzhu75/final-proj-v1
+Instacart Data Source: https://www.instacart.com/datasets/grocery-shopping-2017
+
+
+Instacart is a grocery pick-up service operating in the U.S. and Canada. Users can submit an order and Instacart will pick up and deliver from one of their partnered grocery stores. In 2017, Instacart released data surrounding 3 million orders from more than 200,000 users. Released data variables including, product ID, order number, user id, the order's time of day, department, aisle, reorders, time since last order just to name a few. While the data is comprehensive, they are separated into six disparate files which will all need to be cleaned and combined. With this data alone, I can investigate questions including: what items are most frequently reordered? At what times do people order certain items? Can we segment users based on order size, frequency, and type? What items tend to be ordered together? 
+
+To aid with answering these questions and more, I am currently obtaining data on 
+
+
+
+Note: As of right now, the file sizes are too big to be uploaded to the github repository. I am currently working through some tech issues in downloading Git LFS which should enable me to circumvent this issue. I have attached the url to the data source at the beginning of this document.
