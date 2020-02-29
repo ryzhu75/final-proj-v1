@@ -1,0 +1,6 @@
+orders.csv filter=lfs diff=lfs merge=lfs -text
+/Users/rhu/Documents/GOV1005[[:space:]]Git/final-proj-v1/instacart_2017_05_01/order_products__prior.csv[[:space:]]
+git[[:space:]]lfs[[:space:]]track[[:space:]]order_products__prior.csv
+git[[:space:]]lfs[[:space:]]track[[:space:]]/Users/rhu/Documents/GOV1005 filter=lfs diff=lfs merge=lfs -text
+Git/final-proj-v1/instacart_2017_05_01/order_products__prior.csv filter=lfs diff=lfs merge=lfs -text
+order_products__prior.csv filter=lfs diff=lfs merge=lfs -text
