@@ -1,0 +1,59 @@
+---
+title: "final_proj"
+author: "Raymond Hu"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(readr)
+library(dplyr)
+library(janitor)
+```
+
+```{r code, echo = FALSE}
+
+instacart_products <- read.csv("instacart_2017_05_01/products.csv")
+instacart_orders <- read.csv("instacart_2017_05_01/orders.csv")
+instacart_order_products_train <- read.csv("instacart_2017_05_01/order_products__train.csv")
+instacart_order_products_prior <- read.csv("instacart_2017_05_01/order_products__prior.csv")
+instacart_departments <- read.csv("instacart_2017_05_01/departments.csv")
+instacart_aisles <- read.csv("instacart_2017_05_01/aisles.csv")
+
+dunn_transaction_data <- read.csv("dunnhumby - The Complete Journey CSV/transaction_data.csv") %>% 
+  clean_names()
+dunn_product <- read.csv("dunnhumby - The Complete Journey CSV/product.csv") %>% 
+  clean_names()
+dunn_hh_demographic <- read.csv("dunnhumby - The Complete Journey CSV/hh_demographic.csv") %>% 
+  clean_names()
+dunn_coupon_redempt <- read.csv("dunnhumby - The Complete Journey CSV/coupon_redempt.csv") %>% 
+  clean_names()
+dunn_coupon <- read.csv("dunnhumby - The Complete Journey CSV/coupon.csv") %>% 
+  clean_names()
+dunn_causal_data <- read.csv("dunnhumby - The Complete Journey CSV/causal_data.csv") %>% 
+  clean_names()
+dunn_campaign_table <- read.csv("dunnhumby - The Complete Journey CSV/campaign_table.csv") %>% 
+  clean_names()
+dunn_campaign_desc <- read.csv("dunnhumby - The Complete Journey CSV/campaign_desc.csv") %>% 
+  clean_names()
+
+```
+
+** Because the download file sizes are so large, it was difficult to commit some of the files to github just through the console and terminal. I had to download a separate package to handle the large files. As a result, I drag and dropped the folders and files into the working directory to handle the larger files more easily. 
+
+Repo URL: https://github.com/ryzhu75/final-proj-v1
+Instacart Data Source: https://www.instacart.com/datasets/grocery-shopping-2017
+In-store Data Source: https://www.dunnhumby.com/careers/engineering/sourcefiles
+ *The website with the original data source has been down for the last few days, but the files are all uploaded into my github repository
+
+
+Instacart is a grocery pick-up service operating in the U.S. and Canada. Users can submit an order and Instacart will pick up and deliver from one of their partnered grocery stores. In 2017, Instacart released data surrounding 3 million orders from more than 200,000 users. Released data variables including, product ID, order number, user id, the order's time of day, department, aisle, reorders, time since last order just to name a few. While the data is comprehensive, they are separated into six disparate files. Most of the variable names are consistent however I will continue to transform and clean the data as I answer different questions. By analyzing this data, I can investigate questions including: what items are most frequently reordered? At what times do people order certain items? Can we segment users based on order size, frequency, and type? What items tend to be ordered together? All of these are asked specifically in regards to online grocery shopping.
+
+The second data set I have downloaded is on household level transactions from 2,500 frequent shopper households for a grocery retailer over a period of two years (obtained from dunnhumby.com). It includes data similar to those in the Instacart data, such as products ordered, time of day and demographic data and more. It also includes data on the effect of promotional campaigns performed by the grocer chain. This data is on in-store shopping, not online delivery shopping like Instacart. Like the previous dataset, the data is separated into multiple files which will need to be combined appropriately depending on the question I am trying to answer. Using this data and the Instacart dataset together, I can answer questions like, how do shopping habits differ between in-store shopping and online shopping? How do habits change based on time of day and week between the two methods?
+
+I would like to segment my analysis into three main portions: 1) Analysis on Instacart 2) Analysis on the Dunnhumby data set and 3) Comparison between the two datasets. I have already read in all of the 14 files and have mostly cleaned up the data (in this markdown file, but not printed). One thing I have noticed is that some of the dunnhumby files have two different sections which will need to be separated into two different files. I am currently trying to combine the data sets in the most effective way, which will require pinning down the exact variable relationships.
+
+
+
+
