@@ -1,0 +1,64 @@
+---
+title: "ms_5"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(readr)
+library(dplyr)
+library(janitor)
+```
+
+```{r load in data, include = FALSE}
+
+# Load in necessary data sets and clean names
+
+instacart_orders <- read.csv("instacart_2017_05_01/orders.csv")
+dunn_transaction_data <- read.csv("dunnhumby - The Complete Journey CSV/transaction_data.csv") %>% 
+  clean_names()
+dunn_product <- read.csv("dunnhumby - The Complete Journey CSV/product.csv") %>% 
+  clean_names()
+
+```
+
+```{r, echo = FALSE}
+# Join Dunnhumby product information to transaction data
+
+dunn_transaction_data_product <- dunn_transaction_data %>% 
+  left_join(dunn_product, by = "product_id")
+
+# Combine both density plots to compare the density of purchases through the day
+# between in store and instacart data
+
+ggplot() +
+  geom_density(aes(x = trans_time/100), 
+              fill = "red", 
+              data = dunn_transaction_data, 
+              adjust = 3, 
+              alpha =  0.5) +
+  geom_density(aes(x = order_hour_of_day), 
+              fill = "blue", 
+              data = instacart_orders, 
+              adjust = 3, 
+              alpha = 0.5) +
+  labs(title = "Distribution of Grocery Store Purchases throughout the Day",
+      y = "% of Total Purchases",
+      x = "Hour of Day") +
+  scale_y_continuous(labels = scales::percent) +
+  theme_classic() +
+  annotate("text", 
+           x = 7.25, 
+           y= .08, 
+           label = "Instacart", 
+           color = "blue", 
+           size = 4.5) +
+  annotate("text", 
+           x = 13.75, 
+           y= .095, 
+           label = "Brick & Mortar \n Grocer", 
+           color = "red", 
+           size = 4.5) 
+
+```

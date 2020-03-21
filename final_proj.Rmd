@@ -40,6 +40,46 @@ dunn_campaign_desc <- read.csv("dunnhumby - The Complete Journey CSV/campaign_de
 
 ```
 
+```{r, echo = FALSE}
+# Join Dunnhumby product information to transaction data
+
+dunn_transaction_data_product <- dunn_transaction_data %>% 
+  left_join(dunn_product, by = "product_id")
+
+# Combine both density plots to compare the density of purchases through the day
+# between in store and instacart data
+
+ggplot() +
+  geom_density(aes(x = trans_time/100), 
+              fill = "red", 
+              data = dunn_transaction_data, 
+              adjust = 3, 
+              alpha =  0.5) +
+  geom_density(aes(x = order_hour_of_day), 
+              fill = "blue", 
+              data = instacart_orders, 
+              adjust = 3, 
+              alpha = 0.5) +
+  labs(title = "Distribution of Grocery Store Purchases throughout the Day",
+      y = "% of Total Purchases",
+      x = "Hour of Day") +
+  scale_y_continuous(labels = scales::percent) +
+  theme_classic() +
+  annotate("text", 
+           x = 7.25, 
+           y= .08, 
+           label = "Instacart", 
+           color = "blue", 
+           size = 4.5) +
+  annotate("text", 
+           x = 13.75, 
+           y= .095, 
+           label = "Brick & Mortar \n Grocer", 
+           color = "red", 
+           size = 4.5) 
+
+```
+
 ** Because the download file sizes are so large, it was difficult to commit some of the files to github just through the console and terminal. I had to download a separate package to handle the large files. As a result, I drag and dropped the folders and files into the working directory to handle the larger files more easily. 
 
 Repo URL: https://github.com/ryzhu75/final-proj-v1
