@@ -10,17 +10,37 @@ library(tidyverse)
 library(readr)
 library(dplyr)
 library(janitor)
+library(gganimate)
 ```
 
-```{r code, include = FALSE, cache = TRUE}
-
+```{r Load in instacart data, include = FALSE, cache = TRUE}
 instacart_products <- read.csv("raw/instacart_2017_05_01/products.csv")
 instacart_orders <- read.csv("raw/instacart_2017_05_01/orders.csv")
 instacart_order_products_train <- read.csv("raw/instacart_2017_05_01/order_products__train.csv")
 instacart_order_products_prior <- read.csv("raw/instacart_2017_05_01/order_products__prior.csv")
 instacart_departments <- read.csv("raw/instacart_2017_05_01/departments.csv")
 instacart_aisles <- read.csv("raw/instacart_2017_05_01/aisles.csv")
+```
 
+```{r Transform instacart data1, include = FALSE, cache = TRUE}
+# Combine train and prior data sets
+instacart_order_products_combine <- instacart_order_products_prior %>% 
+  rbind(instacart_order_products_train) %>% 
+  arrange(order_id)
+```
+
+
+```{r Transform instacart data2, include = FALSE}
+# Combine product info with order data
+instacart_master <- 
+  instacart_order_products_combine %>% 
+  full_join(instacart_products, by = "product_id") %>% 
+  left_join(instacart_orders, by = "order_id") %>% 
+  left_join(instacart_departments, by = "department_id") %>% 
+  left_join(instacart_aisles, by = "aisle_id")
+```
+
+```{r load in dunnhumby data, include = FALSE, cache = TRUE}
 dunn_transaction_data <- read.csv("raw/dunnhumby - The Complete Journey CSV/transaction_data.csv") %>% 
   clean_names()
 dunn_product <- read.csv("raw/dunnhumby - The Complete Journey CSV/product.csv") %>% 
@@ -37,10 +57,10 @@ dunn_campaign_table <- read.csv("raw/dunnhumby - The Complete Journey CSV/campai
   clean_names()
 dunn_campaign_desc <- read.csv("raw/dunnhumby - The Complete Journey CSV/campaign_desc.csv") %>% 
   clean_names()
-
 ```
 
-```{r, echo = FALSE}
+
+```{r Compare dunn and instacart data, echo = FALSE}
 # Join Dunnhumby product information to transaction data
 
 dunn_transaction_data_product <- dunn_transaction_data %>% 
@@ -79,3 +99,44 @@ ggplot() +
            size = 4.5) 
 
 ```
+
+```{r Explore Instacart Data, echo = FALSE, cache = TRUE}
+
+
+instacart_products
+
+instacart_order_products_combine
+
+# View orders by department_id
+
+instacart_master %>% 
+  ggplot(aes(x = department_id)) +
+  geom_histogram(binwidth = 1)
+
+# View orders by department_id throughout time of day
+instacart_master %>% 
+  ggplot(aes(x = department_id)) +
+  geom_density() +
+  transition_manual(order_hour_of_day) +
+  labs(title = "Hour of Day: {frame}")
+
+```
+
+```{r Transform Instacart_Master File, echo = FALSE, cache = TRUE}
+
+# Plot the graph of # product orders (organized by department) throughout the time of day, with a reveal animation over time of day
+# Faceted by day of week
+
+instacart_master %>% 
+  group_by(order_dow, order_hour_of_day, department) %>% 
+  count() %>% 
+  filter(!is.na(order_hour_of_day)) %>% 
+  ggplot(aes(x = order_hour_of_day, y = n, color = department)) +
+  geom_line() +
+  facet_wrap(~order_dow) +
+  transition_reveal(order_hour_of_day) +
+  theme_classic()
+
+```
+
+
