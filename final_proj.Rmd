@@ -22,15 +22,12 @@ instacart_departments <- read.csv("raw/instacart_2017_05_01/departments.csv")
 instacart_aisles <- read.csv("raw/instacart_2017_05_01/aisles.csv")
 ```
 
-```{r Transform instacart data1, include = FALSE, cache = TRUE}
+```{r Create master data tibble, include = FALSE}
 # Combine train and prior data sets
 instacart_order_products_combine <- instacart_order_products_prior %>% 
   rbind(instacart_order_products_train) %>% 
   arrange(order_id)
-```
 
-
-```{r Transform instacart data2, include = FALSE}
 # Combine product info with order data
 instacart_master <- 
   instacart_order_products_combine %>% 
@@ -101,11 +98,6 @@ ggplot() +
 ```
 
 ```{r Explore Instacart Data, echo = FALSE, cache = TRUE}
-
-
-instacart_products
-
-instacart_order_products_combine
 
 # View orders by department_id
 
