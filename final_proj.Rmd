@@ -115,7 +115,7 @@ instacart_master %>%
 
 ```
 
-```{r Transform Instacart_Master File, echo = FALSE, cache = TRUE}
+```{r Transform Instacart_Master File to import to shiny web app, echo = FALSE, cache = TRUE}
 
 # Plot the graph of # product orders (organized by department) throughout the time of day, with a reveal animation over time of day
 # Faceted by day of week
@@ -135,5 +135,90 @@ insta_productnum_day_week %>%
 saveRDS(insta_productnum_day_week, file = "ecommerce_final/instacart_dow_product.rds")
 
 ```
+
+```{r Work with Dunnhumby Data}
+
+dunn_trans_hour <- dunn_transaction_data_product %>% 
+  mutate(trans_hour = trans_time - (trans_time %% 100)) %>% 
+  group_by(basket_id, trans_hour) %>%
+  count() %>% 
+  group_by(trans_hour) %>% 
+  count()
+
+# Calculate total transactions (for unit purposes later)
+
+dunn_total_transactions <- sum(dunn_trans_hour$n)
+
+# Edit table once again to get percentages and change unit of hour of day
+dunn_trans_hour <- dunn_trans_hour %>% 
+  ungroup(trans_hour) %>% 
+  mutate(trans_hour = trans_hour/100,
+         percent = n/dunn_total_transactions)
+  
+# Sample plot data
+
+dunn_trans_hour_plot <- dunn_trans_hour %>%   
+  ggplot(aes(x = trans_hour, y = percent)) +
+  geom_line() +
+  transition_reveal(trans_hour)
+
+
+## Instacart
+
+# Initial clean of data
+
+instacart_trans_hour <- instacart_master %>% 
+  group_by(order_id, order_hour_of_day) %>% 
+  count() %>% 
+  group_by(order_hour_of_day) %>% 
+  count() %>% 
+  filter(!is.na(order_hour_of_day))
+
+# Calculate total # of transactions
+
+instacart_total_transactions <- sum(instacart_trans_hour$n)
+
+# Edit table once again to get percentages
+
+instacart_trans_hour <- instacart_trans_hour %>% 
+  ungroup(order_hour_of_day) %>% 
+  mutate(percent = n/instacart_total_transactions,
+         trans_hour = order_hour_of_day) %>% 
+  select(trans_hour, n, percent)
+
+# Sample Plot data
+
+instacart_trans_hour_plot <- instacart_trans_hour %>% 
+  ggplot(aes(x = order_hour_of_day, y = n/instacart_total_transactions*100)) +
+  geom_line()
+    
+
+## Combine data and export RDS for shiny web app
+
+combine_trans_hour <- 
+  bind_rows(list(dunn_trans_hour = dunn_trans_hour, 
+                 instacart_trans_hour = instacart_trans_hour),
+            .id = 'source')
+
+saveRDS(combine_trans_hour, file = "ecommerce_final/combine_trans_hour.rds")
+
+
+# Plot
+combine_trans_hour %>% 
+  ggplot(aes(x = trans_hour, y = percent, color = source)) +
+  geom_line() +
+  theme_classic() +
+  labs(title = "Distribution of Grocery Store Transactions throughout the Day",
+      y = "% of Total Purchases",
+      x = "Hour of Day") +
+  scale_y_continuous(labels = scales::percent) +
+  scale_color_discrete(name = "", labels = c("Brick and Mortar", "Instacart")) +
+  theme(legend.position = "bottom") +
+  transition_reveal(trans_hour)
+    
+
+```
+
+
 
 

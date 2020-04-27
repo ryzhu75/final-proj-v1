@@ -12,16 +12,11 @@ library(dplyr)
 library(shiny)
 library(shinythemes)
 
-# Read in dataset
+# Read in dataset for graphs 1 and 2
 instacart_dow_product <- readRDS("instacart_dow_product.rds")
 
-# list_departments <- 
-#     instacart_dow_product %>% 
-#     ungroup(order_dow, order_hour_of_day, department, department_id) %>% 
-#     distinct(department) %>% 
-#     lapply(as.character)
-
-# ui
+# Read in dataset for graph 3
+combine_trans_hour <- readRDS("combine_trans_hour.rds")
 
 ui <-
     
@@ -112,18 +107,15 @@ ui <-
          ),
                  
         
-        tabPanel("Model",
-                 fluidPage(
-                     titlePanel("Model Title"),
-                     sidebarLayout(
-                         sidebarPanel(
-                             selectInput(
-                                 "plot_type",
-                                 "Plot Type",
-                                 c("Option A" = "a", "Option B" = "b")
-                             )),
-                         mainPanel(plotOutput("insta_productnum_day_week")))
-                 ))
+        tabPanel("Page 2",
+                 titlePanel("Model Title"),
+                 sidebarLayout(
+                     sidebarPanel(
+                         h4("About"),
+                                  p("Paragraph")
+                         ),
+                 mainPanel(plotOutput("graph3")))
+             )
         
         
     
@@ -147,12 +139,13 @@ server <- function(input, output) {
             
         # Filtered by hour (input slider)
         filter(order_hour_of_day %in% (0:input$order_hour_of_day)) %>%     
+            
         ggplot(aes(x = order_hour_of_day, y = n)) +
         geom_line() +
         theme_classic() +
         theme(legend.position = "bottom") +
         scale_color_discrete(name = "Department") +
-        scale_y_continuous(name = "# Purchases", limits = c(0, 500000)) +
+        scale_y_continuous(name = "# Purchases", limits = c(0, 750000)) +
         scale_x_continuous(name = "Hour of Day", limits = c(0, 23)) 
         
     })
@@ -176,6 +169,25 @@ server <- function(input, output) {
             scale_x_continuous(name = "Hour of Day", limits = c(0, 23))
         
     })
+    
+    output$graph3 <- renderPlot({
+        
+        # Plot graph % of total purchases by hour of day
+        
+        combine_trans_hour %>% 
+            ggplot(aes(x = trans_hour, y = percent, color = source)) +
+            geom_line() +
+            theme_classic() +
+            labs(title = "Distribution of Grocery Store Transactions throughout the Day",
+                 y = "% of Total Purchases",
+                 x = "Hour of Day") +
+            scale_y_continuous(labels = scales::percent) +
+            scale_color_discrete(name = "", labels = c("Brick and Mortar", "Instacart")) +
+            theme(legend.position = "bottom") +
+            transition_reveal(trans_hour)
+        
+    })
+    
     
 }
 
