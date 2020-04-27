@@ -5,8 +5,8 @@ account: raymondhu
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 2187225
-bundleId: 3065621
+bundleId: 3069846
 url: https://raymondhu.shinyapps.io/ecommerce_final/
-when: 1587873101.4531
+when: 1587959785.34382
 asMultiple: FALSE
 asStatic: FALSE

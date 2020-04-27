@@ -121,7 +121,8 @@ instacart_master %>%
 # Faceted by day of week
 
 insta_productnum_day_week  <- instacart_master %>% 
-  group_by(order_dow, order_hour_of_day, department) %>% 
+  mutate(department = as.character(department)) %>% 
+  group_by(order_dow, order_hour_of_day, department, department_id) %>% 
   count() %>% 
   filter(!is.na(order_hour_of_day))
 
@@ -130,6 +131,8 @@ insta_productnum_day_week %>%
   geom_line() +
   facet_wrap(~order_dow) +
   theme_classic()
+
+saveRDS(insta_productnum_day_week, file = "ecommerce_final/instacart_dow_product.rds")
 
 ```
 

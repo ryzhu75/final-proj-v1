@@ -10,6 +10,17 @@
 library(shiny)
 library(shinythemes)
 
+# Read in dataset
+instacart_dow_product <- readRDS("instacart_dow_product.rds")
+
+# list_departments <- 
+#     instacart_dow_product %>% 
+#     ungroup(order_dow, order_hour_of_day, department, department_id) %>% 
+#     distinct(department) %>% 
+#     lapply(as.character)
+
+# ui
+
 ui <-
     
     navbarPage(
@@ -34,20 +45,59 @@ ui <-
                      sidebarPanel(
                          h4("About"),
                          p("Paragraph"),
-                         selectInput(inputId = "order_dow",
-                                     label = "Day of the Week",
-                                     choices = list("Sunday" = 0,
-                                                    "Monday" = 1,
-                                                    "Tuesday" = 2,
-                                                    "Wednesday" = 3,
-                                                    "Thursday" = 4,
-                                                    "Friday" = 5, 
-                                                    "Saturday" = 6)
+                        
+                         sliderInput("order_hour_of_day",
+                                     "Hour of Day:",
+                                     min = 0, max = 23,
+                                     value = 0, 
+                                     animate = animationOptions(interval = 2000, loop = TRUE, playButton = "Play",
+                                                                pauseButton = "Pause")
+                                     
+                                     
+                         ),
+                          
+                         sliderInput("order_dow",
+                                     "Day of the Week:",
+                                     min = 0, max = 6,
+                                     value = 0,
+                                     animate = TRUE
+
+
                          )
+                         
+                         
+                         ,
+                
+                         radioButtons(inputId = "department",
+                                      label = "Department",
+                                      choices = list(
+                                          "Alcohol" = "alcohol",
+                                          "Babies" = "babies",
+                                          "Bakery" = "bakery",
+                                          "Beverages" = "beverages",
+                                          "Breakfast" = "breakfast",
+                                          "Bulk" = "bulk",
+                                          "Canned goods" = "canned goods",
+                                          "Dairy eggs" = "dairy eggs",
+                                          "Deli" = "deli",
+                                          "Dry goods, pasta" = "dry goods pasta",
+                                          "Frozen" = "frozen",
+                                          "Household" = "household",
+                                          "International" = "international",
+                                          "Meat, seafood" = "meat seafood",
+                                          "Other" = "other",
+                                          "Pantry" = "pantry",
+                                          "Personal care" = "personal care",
+                                          "Pets" = "pets",
+                                          "Produce" = "produce",
+                                          "Snacks" = "snacks"
+                                          
+                                      ))
                      ),
                      
                      mainPanel(
-                         plotOutput("graph1")
+                         plotOutput("graph1"),
+                         plotOutput("graph2")
                      )
                  )
                      
@@ -75,17 +125,44 @@ ui <-
 server <- function(input, output) {
     
     output$graph1 <- renderPlot({
+
         
-        instacart_dow_product <- read_rds("instacart_dow_product.rds")
-        
+        # Plot graph of hour of day vs. total purchases
         instacart_dow_product %>% 
             
-        filter(order_dow == input$order_dow) %>%     
+        #Filtered by input (order of day)    
+        filter(order_dow == input$order_dow) %>%  
+            
+        filter(order_hour_of_day %in% (0:input$order_hour_of_day)) %>%     
         ggplot(aes(x = order_hour_of_day, y = n, color = department)) +
         geom_line() +
-        theme_classic()
+        theme_classic() +
+        theme(legend.position = "bottom") +
+        scale_color_discrete(name = "Department") +
+        scale_y_continuous(name = "# Purchases", limits = c(0, 200000)) +
+        scale_x_continuous(name = "Hour of Day", limits = c(0, 23)) 
         
     })
+    
+    output$graph2 <- renderPlot({
+        
+        
+        # Plot graph of hour of day vs. total purchases
+        instacart_dow_product %>% 
+            
+            #Filtered by input (order of day)    
+            filter(order_dow == input$order_dow) %>%  
+            filter(department == input$department) %>% 
+            ggplot(aes(x = order_hour_of_day, y = n, color = department)) +
+            geom_line() +
+            theme_classic() +
+            theme(legend.position = "bottom") +
+            scale_color_discrete(name = "Department") +
+            scale_y_continuous(name = "# Purchases", limits = c(0, 200000)) +
+            scale_x_continuous(name = "Hour of Day", limits = c(0, 23))
+        
+    })
+    
 }
 
 # Run the application 
