@@ -7,6 +7,8 @@
 #    http://shiny.rstudio.com/
 #
 
+library(tidyverse)
+library(dplyr)
 library(shiny)
 library(shinythemes)
 
@@ -49,18 +51,24 @@ ui <-
                          sliderInput("order_hour_of_day",
                                      "Hour of Day:",
                                      min = 0, max = 23,
-                                     value = 0, 
-                                     animate = animationOptions(interval = 2000, loop = TRUE, playButton = "Play",
+                                     value = 23, 
+                                     animate = animationOptions(interval = 1300, loop = TRUE, playButton = "Play",
                                                                 pauseButton = "Pause")
                                      
                                      
                          ),
                           
-                         sliderInput("order_dow",
-                                     "Day of the Week:",
-                                     min = 0, max = 6,
-                                     value = 0,
-                                     animate = TRUE
+                         selectInput(inputId = "order_dow",
+                                     label = "Day of the Week:",
+                                     choices = list(
+                                         "Sunday" = 0,
+                                         "Monday" = 1,
+                                         "Tuesday" = 2,
+                                         "Wednesday" = 3,
+                                         "Thursday" = 4,
+                                         "Friday" = 5,
+                                         "Saturday" = 6
+                                     )
 
 
                          )
@@ -129,17 +137,22 @@ server <- function(input, output) {
         
         # Plot graph of hour of day vs. total purchases
         instacart_dow_product %>% 
+        
+        group_by(order_dow, order_hour_of_day) %>% 
+        
+        summarize(n = sum(n)) %>% 
             
-        #Filtered by input (order of day)    
+        # Filtered by input (order of day)    
         filter(order_dow == input$order_dow) %>%  
             
+        # Filtered by hour (input slider)
         filter(order_hour_of_day %in% (0:input$order_hour_of_day)) %>%     
-        ggplot(aes(x = order_hour_of_day, y = n, color = department)) +
+        ggplot(aes(x = order_hour_of_day, y = n)) +
         geom_line() +
         theme_classic() +
         theme(legend.position = "bottom") +
         scale_color_discrete(name = "Department") +
-        scale_y_continuous(name = "# Purchases", limits = c(0, 200000)) +
+        scale_y_continuous(name = "# Purchases", limits = c(0, 500000)) +
         scale_x_continuous(name = "Hour of Day", limits = c(0, 23)) 
         
     })
@@ -153,6 +166,7 @@ server <- function(input, output) {
             #Filtered by input (order of day)    
             filter(order_dow == input$order_dow) %>%  
             filter(department == input$department) %>% 
+            filter(order_hour_of_day %in% (0:input$order_hour_of_day)) %>% 
             ggplot(aes(x = order_hour_of_day, y = n, color = department)) +
             geom_line() +
             theme_classic() +
