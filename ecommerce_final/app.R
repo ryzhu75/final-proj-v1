@@ -11,6 +11,7 @@ library(tidyverse)
 library(dplyr)
 library(shiny)
 library(shinythemes)
+library(gganimate)
 
 # Read in dataset for graphs 1 and 2
 instacart_dow_product <- readRDS("instacart_dow_product.rds")
@@ -18,31 +19,45 @@ instacart_dow_product <- readRDS("instacart_dow_product.rds")
 # Read in dataset for graph 3
 combine_trans_hour <- readRDS("combine_trans_hour.rds")
 
+# Read in dataset for graph 4
+combine_basket_size <- readRDS("combine_basket_size.rds")
+
+
 ui <-
     
     navbarPage(
     
+        # Set theme
+        
         theme = shinytheme("flatly"),
         
-        "Grocery Shopping Trends",
+        # Set Title
         
+        "Online Grocery Shopping Case Study: Instacart",
+        
+        # First content page: About
         tabPanel("About", 
                  titlePanel("About"),
                  h3("Project Background"),
-                 p("Hello, this is where I talk about my project."),
+                 p("In recent years, online grocer delivery services have been growing steadily, disrupting the traditional brick and mortar grocery store model. Proprietary services like Instacart, FreshDirect, and Shipt have even pushed supermarket chains to develop their own food delivery services, such as Walmart Grocery and Safeway. 
+                   Online grocery shopping offers unprecedented accessibility and ways to shop. This project provides an overview of one of the biggest online grocers, Instacart, and compares its usage data to that of an anonymized brick and mortar exclusive grocery store."), 
                  h3("About Me"),
-                 p("Hi there! This project was created by Raymond Hu (Harvard 
-                 College '20). 
-                 You can reach him at raymond.zhang.hu@gmail.com.")),
+                 p("Hi there! This project was created by me, Raymond Hu, Harvard College Class of 2020. I study Economics with a secondary in East Asian Studies and love to study data with the help of R.
+                 You can reach me at raymond.zhang.hu@gmail.com.")),
     
-        tabPanel("Page 1",
-                 titlePanel("Discussion Title"),
+        # Second content page: Instacarrt Overview
+        
+        tabPanel("Instacart Overview",
+                 titlePanel("Overview"),
                  
                  sidebarLayout(
                      sidebarPanel(
                          h4("About"),
-                         p("Paragraph"),
+                         p("This is an overview of Instacart's customer purchasing data, organized by day of week and by hour of day. You can filter by department below. 
+                           Much to my surprise, Instacart's usage is more in line with what I would think traditional grocers would be, with a spike during post-work hours and on weekends."),
                         
+                         # Slider feature to control hour of day on both graphs
+                         
                          sliderInput("order_hour_of_day",
                                      "Hour of Day:",
                                      min = 0, max = 23,
@@ -53,6 +68,8 @@ ui <-
                                      
                          ),
                           
+                         # Drop down menu that allows users to select day of week
+                         
                          selectInput(inputId = "order_dow",
                                      label = "Day of the Week:",
                                      choices = list(
@@ -71,6 +88,8 @@ ui <-
                          
                          ,
                 
+                         # Radio buttons that allow the user to sort data by department
+                         
                          radioButtons(inputId = "department",
                                       label = "Department",
                                       choices = list(
@@ -98,6 +117,8 @@ ui <-
                                       ))
                      ),
                      
+                     # Plot outputs
+                     
                      mainPanel(
                          plotOutput("graph1"),
                          plotOutput("graph2")
@@ -106,20 +127,40 @@ ui <-
                      
          ),
                  
+        # Third Content Page: Online vs. Brick and Mortar Comparison
         
-        tabPanel("Page 2",
-                 titlePanel("Model Title"),
+        tabPanel("Online vs. Brick and Mortar",
+                 titlePanel("Online vs. Brick and Mortar"),
                  sidebarLayout(
                      sidebarPanel(
                          h4("About"),
-                                  p("Paragraph")
+                         p("This page offers comparison metrics between Instacart and the brick and mortar grocer. Although similar, Instacart's usage tends to be more consistent throughout the day. This makes intuitive sense as it is more easily accessible than having to physically drive or walk to a store."),
+                         selectInput(
+                             inputId = "p2_input",
+                             label = "Differences",
+                             choices = c(
+                                 "Distribution of Transactions" = "graph3",
+                                 "Unique Items per Basket" = "graph4"
+                             )
+                         )
                          ),
-                 mainPanel(plotOutput("graph3")))
-             )
+                        
+                 mainPanel(plotOutput("graph34")))
+             ),
         
+        # Data page: Outlines the dataset and where I got the data from
         
+        tabPanel("Data", 
+                 titlePanel("Data"),
+                 h3("Instacart"),
+                 p("In 2017, Instacart released a dataset with over 3 million recorded orders, the largest to date of any online grocer. The link to the data set can be found here: https://www.instacart.com/datasets/grocery-shopping-2017."), 
+                 h3("Brick and Mortar"),
+                 p("The data for the brick and mortar grocery store was retrieved from dunnnhumby.com. This dataset containts hosehold level transactions over two years from a group of 2,500 households who are frequent shoppers at a grocery retrailer. 
+                   The data can be found here: https://www.dunnhumby.com/careers/engineering/sourcefiles?sourcefile=https%3A//www.dunnhumby.com/sites/default/files/sourcefiles/dunnhumby_The-Complete-Journey.zip"),
+                 h3("Citations"),
+                 p("“The Instacart Online Grocery Shopping Dataset 2017”, Accessed from https://www.instacart.com/datasets/grocery-shopping-2017 on 4/27/2020")
     
-    )
+    ))
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
@@ -127,7 +168,7 @@ server <- function(input, output) {
     output$graph1 <- renderPlot({
 
         
-        # Plot graph of hour of day vs. total purchases
+        # Plot graph of total purchases throughout the day
         instacart_dow_product %>% 
         
         group_by(order_dow, order_hour_of_day) %>% 
@@ -142,6 +183,7 @@ server <- function(input, output) {
             
         ggplot(aes(x = order_hour_of_day, y = n)) +
         geom_line() +
+        labs(title = "Total Purchases") +
         theme_classic() +
         theme(legend.position = "bottom") +
         scale_color_discrete(name = "Department") +
@@ -162,6 +204,7 @@ server <- function(input, output) {
             filter(order_hour_of_day %in% (0:input$order_hour_of_day)) %>% 
             ggplot(aes(x = order_hour_of_day, y = n, color = department)) +
             geom_line() +
+            labs(title = "Total Purchases by Department") +
             theme_classic() +
             theme(legend.position = "bottom") +
             scale_color_discrete(name = "Department") +
@@ -170,11 +213,13 @@ server <- function(input, output) {
         
     })
     
-    output$graph3 <- renderPlot({
+    output$graph34 <- renderPlot({
         
-        # Plot graph % of total purchases by hour of day
+        # Plot different graphs depending on the input from the drop down side menu in "Online vs. Brick and Mortar"
         
-        combine_trans_hour %>% 
+        # Plot describes distribution of grocery store purchases throughout the day
+        
+        graph_3 <- combine_trans_hour %>% 
             ggplot(aes(x = trans_hour, y = percent, color = source)) +
             geom_line() +
             theme_classic() +
@@ -183,11 +228,28 @@ server <- function(input, output) {
                  x = "Hour of Day") +
             scale_y_continuous(labels = scales::percent) +
             scale_color_discrete(name = "", labels = c("Brick and Mortar", "Instacart")) +
-            theme(legend.position = "bottom") +
-            transition_reveal(trans_hour)
+            theme(legend.position = "bottom") 
+        
+        # Plot describes the # unique items per basket for each hour
+        
+        graph_4 <- combine_basket_size %>% 
+            ggplot(aes(x = trans_hour, y = basket_size, color = source)) +
+            geom_line() +
+            labs(title = "Average Number of Unique Items per Basket") +
+            scale_color_discrete(name = "", labels = c("Brick and Mortar", "Instacart")) +
+            scale_x_continuous(name = "Hour of Day") +
+            scale_y_continuous(name = "# Unique Items / Basket", limits = c(0, 12)) +
+            theme_classic() +
+            theme(legend.position = "bottom")
+        
+        
+        # Displays the appropriate plot depending on the input from the drop menu
+        
+        ifelse(input$p2_input == "graph3",
+               print(graph_3),
+               print(graph_4))
         
     })
-    
     
 }
 

@@ -138,6 +138,9 @@ saveRDS(insta_productnum_day_week, file = "ecommerce_final/instacart_dow_product
 
 ```{r Work with Dunnhumby Data}
 
+## Dunn data
+# Wrangle dunn transaction data 
+
 dunn_trans_hour <- dunn_transaction_data_product %>% 
   mutate(trans_hour = trans_time - (trans_time %% 100)) %>% 
   group_by(basket_id, trans_hour) %>%
@@ -202,7 +205,6 @@ combine_trans_hour <-
 
 saveRDS(combine_trans_hour, file = "ecommerce_final/combine_trans_hour.rds")
 
-
 # Plot
 combine_trans_hour %>% 
   ggplot(aes(x = trans_hour, y = percent, color = source)) +
@@ -216,8 +218,59 @@ combine_trans_hour %>%
   theme(legend.position = "bottom") +
   transition_reveal(trans_hour)
     
-
 ```
+
+```{r Basket Sizes}
+
+# Wrangle dunn data to get average unique item basket_size for every hour 
+
+dunn_master <- dunn_transaction_data_product 
+
+dunn_basket_size <- dunn_master %>% 
+  mutate(trans_hour = (trans_time - (trans_time %% 100))/100) %>% 
+  group_by(basket_id, trans_hour) %>% 
+  count() %>% 
+  group_by(trans_hour) %>% 
+  summarize(basket_size = mean(n)) 
+
+
+# Clean instacart data to get average unique item basket_size for every hour \
+
+instacart_basket_size <- instacart_master %>% 
+  group_by(order_id, order_hour_of_day) %>% 
+  count() %>% 
+  group_by(order_hour_of_day) %>% 
+  summarize(basket_size = mean(n)) %>% 
+  mutate(trans_hour = order_hour_of_day) %>% 
+  select(-order_hour_of_day)
+
+# Combine the two datasets
+
+combine_basket_size <- 
+  
+  # This allows me to identify the original source
+  
+  bind_rows(list(dunn_basket_size = dunn_basket_size, 
+                 instacart_basket_size = instacart_basket_size),
+            .id = 'source') 
+
+# Save this data table into a rds file to be used in the shiny web app
+
+saveRDS(combine_basket_size, file = "ecommerce_final/combine_basket_size.rds")
+
+# Sample plot that I will place into the shiny web app
+
+combine_plot <- combine_basket_size %>% 
+  ggplot(aes(x = trans_hour, y = basket_size, color = source)) +
+  geom_line() +
+  labs(title = "Average Number of Unique Items per Basket") +
+  scale_color_discrete(name = "", labels = c("Brick and Mortar", "Instacart")) +
+  scale_x_continuous(name = "Hour of Day") +
+  scale_y_continuous(name = "# Unique Items / Basket", limits = c(0, 12)) +
+  theme_classic() +
+  theme(legend.position = "bottom")
+```
+
 
 
 
