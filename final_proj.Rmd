@@ -11,6 +11,8 @@ library(readr)
 library(dplyr)
 library(janitor)
 library(gganimate)
+library(tidymodels)
+library(gt)
 ```
 
 ```{r Load in instacart data, include = FALSE, cache = TRUE}
@@ -270,6 +272,29 @@ combine_plot <- combine_basket_size %>%
   theme_classic() +
   theme(legend.position = "bottom")
 ```
+
+```{r Reordering Model, echo = FALSE, cache = TRUE}
+
+prior_size <- instacart_master %>% 
+  group_by(days_since_prior_order, order_id) %>% 
+  count() %>% 
+  mutate(items = n)
+
+saveRDS(prior_size, file = "ecommerce_final/prior_size.rds")
+
+prior_size %>% 
+  ggplot(aes(x = items, y = days_since_prior_order)) +
+  geom_jitter() +
+  geom_smooth(method = "lm")
+
+model <- lm(days_since_prior_order ~ items, data = prior_size) 
+
+model %>% 
+  tidy(conf.int = TRUE) %>% 
+  select(estimate, std.error, conf.low, conf.high)
+
+```
+
 
 
 

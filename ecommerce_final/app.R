@@ -12,6 +12,7 @@ library(dplyr)
 library(shiny)
 library(shinythemes)
 library(gganimate)
+#library(tidymodels)
 
 # Read in dataset for graphs 1 and 2
 instacart_dow_product <- readRDS("instacart_dow_product.rds")
@@ -21,6 +22,9 @@ combine_trans_hour <- readRDS("combine_trans_hour.rds")
 
 # Read in dataset for graph 4
 combine_basket_size <- readRDS("combine_basket_size.rds")
+
+# Read in data set for graph 5 and table 1
+prior_size <- readRDS("prior_size.rds")
 
 
 ui <-
@@ -148,6 +152,21 @@ ui <-
                  mainPanel(plotOutput("graph34")))
              ),
         
+        # Fourth Content Page: Regression
+
+        tabPanel("Regression",
+                 titlePanel("Analysis"),
+                 sidebarLayout(
+                     sidebarPanel(
+                         h4("Regression Analysis"),
+                         p("What is the relationship between the number of days since the last order and the number of items in the current order?")
+                     ),
+
+                     mainPanel(plotOutput("graph5"),
+                               tableOutput("table1"))
+                 )
+        ),
+        
         # Data page: Outlines the dataset and where I got the data from
         
         tabPanel("Data", 
@@ -160,7 +179,9 @@ ui <-
                  h3("Citations"),
                  p("“The Instacart Online Grocery Shopping Dataset 2017”, Accessed from https://www.instacart.com/datasets/grocery-shopping-2017 on 4/27/2020")
     
-    ))
+    )
+    
+    )
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
@@ -208,7 +229,9 @@ server <- function(input, output) {
             theme_classic() +
             theme(legend.position = "bottom") +
             scale_color_discrete(name = "Department") +
-            scale_y_continuous(name = "# Purchases", limits = c(0, 200000)) +
+            scale_y_continuous(name = "# Purchases"
+                               # , limits = c(0, 200000)
+                               ) +
             scale_x_continuous(name = "Hour of Day", limits = c(0, 23))
         
     })
@@ -250,6 +273,33 @@ server <- function(input, output) {
                print(graph_4))
         
     })
+    
+
+    output$graph5 <- renderPlot({
+
+        # Plot regression plot of basket size and days since prior order
+
+        prior_size %>%
+            ggplot(aes(x = items, y = days_since_prior_order)) +
+            geom_jitter() +
+            geom_smooth(method = "lm") +
+            labs(title = "Relationship between Time Since Last Order and Items in Cart",
+                 y = "Days Since Last Reorder",
+                 x = "Unique Items in Cart")
+
+    })
+
+
+    output$table1 <- renderTable({
+
+        model <- lm(days_since_prior_order ~ items, data = prior_size)
+
+        model_table <- model %>%
+            tidy(conf.int = TRUE) %>%
+            select(estimate, std.error, conf.low, conf.high)
+
+    })
+
     
 }
 
