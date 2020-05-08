@@ -12,6 +12,7 @@ library(dplyr)
 library(shiny)
 library(shinythemes)
 library(gganimate)
+library(gt)
 #library(tidymodels)
 
 # Read in dataset for graphs 1 and 2
@@ -25,6 +26,9 @@ combine_basket_size <- readRDS("combine_basket_size.rds")
 
 # Read in data set for graph 5 and table 1
 prior_size <- readRDS("prior_size.rds")
+
+# Read in data set for graph 6
+insta_by_department <- readRDS("insta_by_department.rds")
 
 
 ui <-
@@ -43,10 +47,32 @@ ui <-
         tabPanel("About", 
                  titlePanel("About"),
                  h3("Project Background"),
-                 p("In recent years, online grocer delivery services have been growing steadily, disrupting the traditional brick and mortar grocery store model. Proprietary services like Instacart, FreshDirect, and Shipt have even pushed supermarket chains to develop their own food delivery services, such as Walmart Grocery and Safeway. 
-                   Online grocery shopping offers unprecedented accessibility and ways to shop. This project provides an overview of one of the biggest online grocers, Instacart, and compares its usage data to that of an anonymized brick and mortar exclusive grocery store."), 
+                 p("In recent years, online grocer delivery services have been 
+                 growing steadily, disrupting the traditional brick and mortar 
+                 grocery store model. Proprietary services like Instacart, 
+                 FreshDirect, and Shipt have even pushed supermarket chains to
+                 develop their own food delivery services, such as Walmart 
+                 Grocery and Safeway. Online grocery shopping offers unprecedented 
+                 accessibility and ways to shop. This project provides an overview 
+                 of one of the biggest online grocers, Instacart, and compares its 
+                 usage data to that of an anonymized brick and mortar exclusive 
+                   grocery store."), 
+                 h3("Findings"),
+                 p("Instacart usage activity is highest on the weekends and the most commonly
+                   purchased products come from produce and dairy sections, behavior that is similar to what
+                   I would expect from a traditional brick and mortar grocery. However, 
+                   compared to a traditional brick and mortar grocer, purchasing behavior on Instacart is more smoothed 
+                   throughout the day. The peak of traffic a traditional grocer experiences during rush hour
+                   still exists, but starts several hours earlier and is not as concentrated. Further, Instacart basket 
+                   sizes remain largely constant throughout the day whereas the traditional grocer's customer basket sizes
+                   peak during the day and fall in the night and mornings. Finally, a regression of 
+                   basket size on the time since a customer's last reorder shows that customers with
+                   more items in their current basket are associated with a longer time since their last order.
+                   Feel free to explore the interactive diagrams on this website!"),
                  h3("About Me"),
-                 p("Hi there! This project was created by me, Raymond Hu, Harvard College Class of 2020. I study Economics with a secondary in East Asian Studies and love to study data with the help of R.
+                 p("Hi there! This project was created by me, Raymond Hu, 
+                 Harvard College Class of 2020. I study Economics with a secondary 
+                 in East Asian Studies and love to study data with the help of R.
                  You can reach me at raymond.zhang.hu@gmail.com.")),
     
         # Second content page: Instacarrt Overview
@@ -57,8 +83,12 @@ ui <-
                  sidebarLayout(
                      sidebarPanel(
                          h4("About"),
-                         p("This is an overview of Instacart's customer purchasing data, organized by day of week and by hour of day. You can filter by department below. 
-                           Much to my surprise, Instacart's usage is more in line with what I would think traditional grocers would be, with a spike during post-work hours and on weekends."),
+                         p("This is an overview of Instacart's customer purchasing 
+                         data, organized by day of week and by hour of day. You can 
+                         filter by department below. Much to my surprise, 
+                         Instacart's usage is more in line with what I would think 
+                         traditional grocers would be, with a spike during post-work 
+                         hours and on weekends."),
                         
                          # Slider feature to control hour of day on both graphs
                          
@@ -125,7 +155,8 @@ ui <-
                      
                      mainPanel(
                          plotOutput("graph1"),
-                         plotOutput("graph2")
+                         plotOutput("graph2"),
+                         plotOutput("graph6")
                      )
                  )
                      
@@ -138,7 +169,12 @@ ui <-
                  sidebarLayout(
                      sidebarPanel(
                          h4("About"),
-                         p("This page offers comparison metrics between Instacart and the brick and mortar grocer. Although similar, Instacart's usage tends to be more consistent throughout the day. This makes intuitive sense as it is more easily accessible than having to physically drive or walk to a store."),
+                         p("This page offers comparison metrics between Instacart
+                           and the brick and mortar grocer. Although similar, 
+                           Instacart's usage tends to be more consistent throughout 
+                           the day. This makes intuitive sense as it is more easily 
+                           accessible than having to physically drive or walk to 
+                           a store."),
                          selectInput(
                              inputId = "p2_input",
                              label = "Differences",
@@ -155,15 +191,27 @@ ui <-
         # Fourth Content Page: Regression
 
         tabPanel("Regression",
-                 titlePanel("Analysis"),
+                 titlePanel("Instacart Purchasing Analysis"),
                  sidebarLayout(
                      sidebarPanel(
                          h4("Regression Analysis"),
-                         p("What is the relationship between the number of days since the last order and the number of items in the current order?")
+                         p("What is the relationship between the number of days 
+                            since the last order and the number of items in the 
+                            current order? My hypothesis is that there is a
+                            positive relationship between the two, as someone 
+                            ordering more now likely has gone a longer time and has consumed
+                            more since their last resupply. The regression results 
+                            are consistent with this hypothesis,
+                            showing a positive relationship between the number of days since the last 
+                            order and the number of unique items in the current 
+                            order basket. According 
+                           to the regression, a 1 item increase in the basket is 
+                           associated with a 0.0695 increase in the number of days 
+                           since a customer's last order")
                      ),
 
-                     mainPanel(plotOutput("graph5"),
-                               tableOutput("table1"))
+                     mainPanel(imageOutput("image1"),
+                               imageOutput("table1"))
                  )
         ),
         
@@ -172,12 +220,19 @@ ui <-
         tabPanel("Data", 
                  titlePanel("Data"),
                  h3("Instacart"),
-                 p("In 2017, Instacart released a dataset with over 3 million recorded orders, the largest to date of any online grocer. The link to the data set can be found here: https://www.instacart.com/datasets/grocery-shopping-2017."), 
+                 p("In 2017, Instacart released a dataset with over 3 million
+                   recorded orders, the largest to date of any online grocer. 
+                   The link to the data set can be found here: 
+                   https://www.instacart.com/datasets/grocery-shopping-2017."), 
                  h3("Brick and Mortar"),
-                 p("The data for the brick and mortar grocery store was retrieved from dunnnhumby.com. This dataset containts hosehold level transactions over two years from a group of 2,500 households who are frequent shoppers at a grocery retrailer. 
-                   The data can be found here: https://www.dunnhumby.com/careers/engineering/sourcefiles?sourcefile=https%3A//www.dunnhumby.com/sites/default/files/sourcefiles/dunnhumby_The-Complete-Journey.zip"),
+                 p("The data for the brick and mortar grocery store was retrieved 
+                 from dunnnhumby.com. This dataset containts hosehold level 
+                 transactions over two years from a group of 2,500 households 
+                 who are frequent shoppers at a grocery retrailer. The data can
+                 be found here: https://www.dunnhumby.com/careers/engineering/sourcefiles?sourcefile=https%3A//www.dunnhumby.com/sites/default/files/sourcefiles/dunnhumby_The-Complete-Journey.zip"),
                  h3("Citations"),
-                 p("“The Instacart Online Grocery Shopping Dataset 2017”, Accessed from https://www.instacart.com/datasets/grocery-shopping-2017 on 4/27/2020")
+                 p("“The Instacart Online Grocery Shopping Dataset 2017”, 
+                 Accessed from https://www.instacart.com/datasets/grocery-shopping-2017 on 4/27/2020")
     
     )
     
@@ -236,6 +291,19 @@ server <- function(input, output) {
         
     })
     
+    output$graph6 <- renderPlot({
+        
+        insta_by_department %>% 
+        ggplot(aes(x = reorder(department, -percent), y = 100*percent)) +
+        geom_col() +
+        scale_y_continuous(name = "% of Total Purchases") +
+        scale_x_discrete(name = "Department") +
+        labs(title = "Purchase Distribution by Department") +
+        theme_classic() +
+        theme(axis.text.x = element_text(angle = 45, vjust = .9, hjust = .95))
+           
+    })
+    
     output$graph34 <- renderPlot({
         
         # Plot different graphs depending on the input from the drop down side menu in "Online vs. Brick and Mortar"
@@ -274,33 +342,32 @@ server <- function(input, output) {
         
     })
     
-
-    output$graph5 <- renderPlot({
-
-        # Plot regression plot of basket size and days since prior order
-
-        prior_size %>%
-            ggplot(aes(x = items, y = days_since_prior_order)) +
-            geom_jitter() +
-            geom_smooth(method = "lm") +
-            labs(title = "Relationship between Time Since Last Order and Items in Cart",
-                 y = "Days Since Last Reorder",
-                 x = "Unique Items in Cart")
-
-    })
-
-
-    output$table1 <- renderTable({
-
-        model <- lm(days_since_prior_order ~ items, data = prior_size)
-
-        model_table <- model %>%
-            tidy(conf.int = TRUE) %>%
-            select(estimate, std.error, conf.low, conf.high)
-
-    })
-
     
+    # Image of gt table of regression results of prior_size (unique items x days since last order)
+    
+    output$table1 <- renderImage({
+        
+    prior_size_table <- normalizePath(file.path('prior_size_table.png/prior_size_table.png'))
+    
+    list(src = prior_size_table,
+         width = 625,
+         height = 150, 
+         alt = "Error")
+        
+    }, deleteFile = FALSE)
+    
+    # Image of the scatterplot + line of best fit for prior_size table
+    
+    output$image1 <- renderImage({
+
+        prior_size_image <- normalizePath(file.path('prior_size_image.png'))
+        
+        list(src = prior_size_image,
+             width = 750,
+             height = 375)
+        
+    }, deleteFile = FALSE)
+
 }
 
 # Run the application 

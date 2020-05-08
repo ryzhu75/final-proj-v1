@@ -13,6 +13,7 @@ library(janitor)
 library(gganimate)
 library(tidymodels)
 library(gt)
+library(webshot)
 ```
 
 ```{r Load in instacart data, include = FALSE, cache = TRUE}
@@ -30,7 +31,7 @@ instacart_order_products_combine <- instacart_order_products_prior %>%
   rbind(instacart_order_products_train) %>% 
   arrange(order_id)
 
-# Combine product info with order data
+# Combine product info with order data to create a master file
 instacart_master <- 
   instacart_order_products_combine %>% 
   full_join(instacart_products, by = "product_id") %>% 
@@ -41,6 +42,9 @@ instacart_master <-
 ```
 
 ```{r load in dunnhumby data, include = FALSE, cache = TRUE}
+
+# Read in all dunnhumby data and clean
+
 dunn_transaction_data <- read.csv("raw/dunnhumby - The Complete Journey CSV/transaction_data.csv") %>% 
   clean_names()
 dunn_product <- read.csv("raw/dunnhumby - The Complete Journey CSV/product.csv") %>% 
@@ -138,7 +142,7 @@ saveRDS(insta_productnum_day_week, file = "ecommerce_final/instacart_dow_product
 
 ```
 
-```{r Work with Dunnhumby Data}
+```{r Work with Dunnhumby Data, echo = FALSE}
 
 ## Dunn data
 # Wrangle dunn transaction data 
@@ -222,7 +226,7 @@ combine_trans_hour %>%
     
 ```
 
-```{r Basket Sizes}
+```{r Basket Sizes, echo = FALSE}
 
 # Wrangle dunn data to get average unique item basket_size for every hour 
 
@@ -278,22 +282,99 @@ combine_plot <- combine_basket_size %>%
 prior_size <- instacart_master %>% 
   group_by(days_since_prior_order, order_id) %>% 
   count() %>% 
-  mutate(items = n)
+  mutate(items = n) %>% 
+  select(-n) %>% 
+  ungroup(days_since_prior_order, order_id)
 
 saveRDS(prior_size, file = "ecommerce_final/prior_size.rds")
+
+
+# Open png to which a plot can be saved to 
+
+png(file = "ecommerce_final/prior_size_image.png",
+    width = 750,
+    height = 375)
+
+# Plot a graph between days since previous order and # unique items in basket
 
 prior_size %>% 
   ggplot(aes(x = items, y = days_since_prior_order)) +
   geom_jitter() +
-  geom_smooth(method = "lm")
+  geom_smooth(method = "lm") +
+  scale_y_continuous(name = "Days Since Previous Order") +
+  scale_x_continuous(name = "Unique Items in Basket") +
+  labs(title = "Relationship Between Order Size and Order Frequency") +
+  theme_classic() 
+
+# Close the png file to which the previous plot has been saved
+      
+dev.off()
+
+
+# Create a simpel regression of items on days since last order
 
 model <- lm(days_since_prior_order ~ items, data = prior_size) 
 
-model %>% 
+# Display results in a formatted gt table
+
+gt_model <- model %>% 
   tidy(conf.int = TRUE) %>% 
-  select(estimate, std.error, conf.low, conf.high)
+  select(term, estimate, std.error, conf.low, conf.high) %>% 
+  gt() %>% 
+  cols_label(term = "Term",
+              estimate = "Estimate",
+             std.error = "Standard Error",
+             conf.low = "95% CI (Low)",
+             conf.high = "95% CI (High)") %>% 
+  fmt_number(decimals = 4,
+             columns = 2:5)
+
+# Save the table as an image file to export to shiny
+
+gtsave(gt_model, "prior_size_table.png", path = "ecommerce_final/prior_size_table.png")
 
 ```
+
+```{r Instacart Purchases by Department, echo = FALSE}
+
+# Create a bar graph breaking down total purchase distribution by department
+
+# Summarizes data to count purchases by department
+
+insta_by_department <- instacart_master %>% 
+  group_by(department) %>% 
+  count() %>% 
+  arrange(desc(n)) 
+  
+# Create a variable that totals all purchases (for calculating percentages later)
+
+total_purchases <- sum(insta_by_department$n)
+
+# Create a new percentage variable that divides department purchases by total purchases
+
+insta_by_department <- insta_by_department %>% 
+  mutate(percent = n/total_purchases)
+
+# Save as RDS for shinyapp
+
+saveRDS(insta_by_department, file = "ecommerce_final/insta_by_department.rds")
+
+# Plot the desired bar graph of department by percentage of purchases 
+
+insta_by_department %>% 
+  ggplot(aes(x = reorder(department, -percent), y = 100*percent)) +
+  geom_col() +
+  scale_y_continuous(name = "% of Total Purchases") +
+  scale_x_discrete(name = "Department") +
+  labs(title = "Purchase Distribution by Department") +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 45, vjust = .9, hjust = .95))
+  
+```
+
+
+
+
 
 
 
